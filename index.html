@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>User Profile</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: Arial, sans-serif;
+            background: #f0f2f5;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+        .card {
+            background: white;
+            border-radius: 12px;
+            padding: 40px;
+            width: 400px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+        }
+        h2 { text-align: center; color: #1E293B; margin-bottom: 24px; }
+        label { display: block; font-size: 13px; font-weight: bold; color: #374151; margin-bottom: 6px; }
+        input {
+            width: 100%; padding: 10px 14px;
+            border: 1.5px solid #E5E7EB;
+            border-radius: 8px; font-size: 14px;
+            margin-bottom: 16px; outline: none;
+        }
+        input:focus { border-color: #2563EB; }
+        button {
+            width: 100%; padding: 12px;
+            background: #2563EB; color: white;
+            border: none; border-radius: 8px;
+            font-size: 15px; font-weight: bold;
+            cursor: pointer; margin-bottom: 8px;
+        }
+        button:hover { background: #1D4ED8; }
+        .load-btn { background: #64748B; }
+        .load-btn:hover { background: #475569; }
+        .msg { text-align: center; padding: 8px; border-radius: 6px; margin-top: 10px; display: none; }
+        .success { background: #D1FAE5; color: #065F46; display: block; }
+        .error { background: #FEE2E2; color: #991B1B; display: block; }
+    </style>
+</head>
+<body>
+    <div class="card">
+        <h2>User Profile</h2>
+        <label>Name</label>
+        <input type="text" id="name" placeholder="Enter Name Name" />
+        <label>Email</label>
+        <input type="email" id="email" placeholder="Enter Email " />
+        <label>Interests</label>
+        <input type="text" id="interests" placeholder="e.g. coding, music..." />
+        <button onclick="saveProfile()">Save Profile</button>
+        <button class="load-btn" onclick="loadProfile()">Load Profile</button>
+        <div class="msg" id="msg"></div>
+    </div>
+    <script>
+        window.onload = () => loadProfile();
+
+        async function loadProfile() {
+            try {
+                const res = await fetch('/get-profile');
+                const data = await res.json();
+                document.getElementById('name').value      = data.name      || '';
+                document.getElementById('email').value     = data.email     || '';
+                document.getElementById('interests').value = data.interests || '';
+                showMsg('Profile load !', 'success');
+            } catch(e) {
+                showMsg('Server connect bhayena!', 'error');
+            }
+        }
+
+        async function saveProfile() {
+            const payload = {
+                name:      document.getElementById('name').value,
+                email:     document.getElementById('email').value,
+                interests: document.getElementById('interests').value,
+            };
+            try {
+                const res = await fetch('/update-profile', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                const data = await res.json();
+                if (data.success) showMsg('Profile save success!', 'success');
+                else showMsg('Error aayo!', 'error');
+            } catch(e) {
+                showMsg('Server connect error!', 'error');
+            }
+        }
+
+        function showMsg(text, type) {
+            const el = document.getElementById('msg');
+            el.textContent = text;
+            el.className = `msg ${type}`;
+            setTimeout(() => el.className = 'msg', 3000);
+        }
+    </script>
+</body>
+</html>
